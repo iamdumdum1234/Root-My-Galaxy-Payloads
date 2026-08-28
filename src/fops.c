@@ -122,6 +122,9 @@ int select_slide_payload_index(size_t index) {
   return 1;
 }
 
+/* Only referenced by the oracle-diagnostic build variants; unused in
+ * production configurations. */
+__attribute__((unused))
 static void put_slide_bank_entry(unsigned char *p, uintptr_t payload_base,
                                  size_t slot, uintptr_t parent,
                                  uintptr_t target) {

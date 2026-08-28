@@ -95,8 +95,12 @@
 
 /* --- slide kernelsnitch tuning ------------------------------------------- */
 #define SLIDE_KSNITCH_APPENDED_FUTEXES 2048
-#define SLIDE_KSNITCH_REPEAT_MEASUREMENT 24
+#define SLIDE_KSNITCH_REPEAT_MEASUREMENT 48
 #define SLIDE_KSNITCH_AVERAGE 4
+#define SLIDE_KSNITCH_SCREEN_REPEAT 16
+#define SLIDE_KSNITCH_SCREEN_AVERAGE 3
+#define KSNITCH_FULL_COLLISIONS 4
+#define KERNELSNITCH_COLLISION_CONFIRMATIONS 2
 
 /* --- controlled-mm bank layout ------------------------------------------- */
 #define SLIDE_BANK_SLOTS 4
