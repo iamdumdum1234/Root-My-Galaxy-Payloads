@@ -78,7 +78,7 @@ void slide_fpsimd_stack_copy(void) {
   uintptr_t tree_left = slide_oracle_target;
   uintptr_t pi_parent = slide_oracle_parent;
   uintptr_t pi_right = 0;
-  uintptr_t pi_left = slide_oracle_target;
+  uintptr_t pi_left = 0;
 
   pthread_once(&once, fpsimd_install_handler);
 
