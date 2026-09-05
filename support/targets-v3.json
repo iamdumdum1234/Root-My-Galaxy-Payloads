@@ -214,23 +214,37 @@
         "size": 4083520
       }
     },
-{
-  "payloadId": "gts9fewifi-X510XXSEEZG3",
-  "displayName": "Galaxy Tab S9 FE Wi-Fi | Kernel 5.15.189",
-  "models": ["SM-X510"],
-  "kernelVersions": ["5.15.189"],
-  "exploit": {
-    "url": "https://raw.githubusercontent.com/hmd-msrf-k/Root-My-Galaxy-Payloads/gts9fewifi-X510XXSEEZG3-v4/artifacts/gts9fewifi-X510XXSEEZG3/cve-2026-43499-app.so",
-    "size": 104128
-  },
-  "kernelsu": {
-    "url": "https://raw.githubusercontent.com/hmd-msrf-k/Root-My-Galaxy-Payloads/gts9fewifi-X510XXSEEZG3-v4/kernelsu/ksud-gts9fewifi-X510XXSEEZG3-kdp",
-    "size": 3828432
-  },
-  "kernelsu-next": {
-    "url": "https://raw.githubusercontent.com/hmd-msrf-k/Root-My-Galaxy-Payloads/gts9fewifi-X510XXSEEZG3-v4/kernelsu/ksud-next-gts9fewifi-X510XXSEEZG3-kdp",
-    "size": 4083520
-  }
-}
+    {
+      "payloadId": "gts9fewifi-X510XXSEEZG3",
+      "displayName": "Galaxy Tab S9 FE Wi-Fi | Kernel 5.15.189",
+      "models": ["SM-X510"],
+      "kernelVersions": ["5.15.189"],
+      "exploit": {
+        "url": "https://raw.githubusercontent.com/hmd-msrf-k/Root-My-Galaxy-Payloads/gts9fewifi-X510XXSEEZG3-v4/artifacts/gts9fewifi-X510XXSEEZG3/cve-2026-43499-app.so",
+        "size": 104128
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/hmd-msrf-k/Root-My-Galaxy-Payloads/gts9fewifi-X510XXSEEZG3-v4/kernelsu/ksud-gts9fewifi-X510XXSEEZG3-kdp",
+        "size": 3828432
+      },
+      "kernelsu-next": {
+        "url": "https://raw.githubusercontent.com/hmd-msrf-k/Root-My-Galaxy-Payloads/gts9fewifi-X510XXSEEZG3-v4/kernelsu/ksud-next-gts9fewifi-X510XXSEEZG3-kdp",
+        "size": 4083520
+      }
+    },
+    {
+      "payloadId": "gts9fepwifi-X610XXSEEZG3",
+      "displayName": "Galaxy Tab S9 FE+ Wi-Fi | Kernel 5.15.189",
+      "models": ["SM-X610"],
+      "kernelVersions": ["5.15.189"],
+      "exploit": {
+        "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/kernelsu/ksud-gts9fepwifi-X610XXSEEZG3-kdp",
+        "size": 104128
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/kernelsu/android13-5.15.189_kernelsu-gts9fepwifi-X610XXSEEZG3.ko",
+        "size": 3828432
+      }
+    }
   ]
 }
