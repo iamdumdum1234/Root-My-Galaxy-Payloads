@@ -239,11 +239,11 @@
       "kernelVersions": ["5.15.189"],
       "exploit": {
         "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/artifacts/gts9fepwifi-X610XXSEEZG3/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 105126
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/kernelsu/ksud-gts9fepwifi-X610XXSEEZG3-kdp",
-        "size": 3828432
+        "size": 3839736
       }
     }
   ]
