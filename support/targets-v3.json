@@ -259,6 +259,20 @@
         "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/kernelsu/ksud-gts9fepwifi-X610XXSFEZH7-kdp",
         "size": 3828432
       }
+    },
+    {
+      "payloadId": "gts9fepwifi-X610XXSGEZI3",
+      "displayName": "Galaxy Tab S9 FE+ Wi-Fi (September patch) | Kernel 5.15.189",
+      "models": ["SM-X610"],
+      "kernelVersions": ["5.15.189"],
+      "exploit": {
+        "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/artifacts/gts9fepwifi-X610XXSGEZI3/cve-2026-43499-app.so",
+        "size": 134072
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/iamdumdum1234/Root-My-Galaxy-Payloads/feature/sm-x610-xsp/kernelsu/ksud-gts9fepwifi-X610XXSGEZI3-kdp",
+        "size": 3828432
+      }
     }
   ]
 }
